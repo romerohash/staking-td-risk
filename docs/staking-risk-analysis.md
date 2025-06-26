@@ -71,7 +71,8 @@ Where:
 **Intuition**: This formula calculates the gap between ETH's proportional share of the redemption and the amount of unstaked ETH available to sell.
 
 **Example**: With $90\%$ staking and $10\%$ redemption:
-$\delta_{ETH} = \max(0, 0.10 \times 0.1049 - 0.1049 \times (1 - 0.90)) = 0.0005 = 0.05\%$
+
+$$\delta_{ETH} = \max(0, 0.10 \times 0.1049 - 0.1049 \times (1 - 0.90)) = 0.0005 = 0.05\%$$
 
 ### 2. Risk Modeling: Covariance Matrix
 
