@@ -154,6 +154,60 @@ base_k = eth_weight² × (v' Σ v)
 
 This captures how efficiently the portfolio can hedge ETH overweights.
 
+## Two-Asset Tracking Error Formula
+
+### Extension to Two Stakable Assets
+
+The framework has been extended to handle the specific case of two stakable assets with different unbonding periods. For ETH (10-day unbonding) and SOL (2-day unbonding), the analytical formula becomes:
+
+```
+TE = √[λ × (d_short × E[Var_full] + (d_long - d_short) × E[Var_partial])]
+```
+
+Where:
+- **d_short**: Minimum unbonding period (2 days for SOL)
+- **d_long**: Maximum unbonding period (10 days for ETH)
+- **E[Var_full]**: Expected variance when both assets are overweighted (days 1-2)
+- **E[Var_partial]**: Expected variance when only ETH is overweighted (days 3-10)
+
+### Time-Segmented Variance
+
+The variance calculation accounts for different time periods:
+
+**Days 1-2 (Both assets overweighted):**
+```
+Var_full(r) = k_ETH_ETH × (r - τ_ETH)²₊ + 
+              2 × k_ETH_SOL × (r - τ_ETH)₊ × (r - τ_SOL)₊ + 
+              k_SOL_SOL × (r - τ_SOL)²₊
+```
+
+**Days 3-10 (Only ETH overweighted):**
+```
+Var_partial(r) = k_ETH_ETH × (r - τ_ETH)²₊
+```
+
+### Cross-Asset k-Components
+
+The k-components capture the interaction between assets:
+- **k_ETH_ETH = eth_weight² × (v_ETH' Σ v_ETH)**: ETH's self-contribution
+- **k_SOL_SOL = sol_weight² × (v_SOL' Σ v_SOL)**: SOL's self-contribution  
+- **k_ETH_SOL = eth_weight × sol_weight × (v_ETH' Σ v_SOL)**: Cross-term
+
+### Correlation Cost Discovery
+
+A counterintuitive finding: **k_ETH_SOL > 0**, meaning the cross-term increases tracking error rather than reducing it. This occurs because:
+
+1. **Constraint Competition**: ETH and SOL constraints compete for the same hedge assets
+2. **Reduced Degrees of Freedom**: Each additional constraint limits the optimizer's flexibility
+3. **Positive Correlation**: ETH and SOL are positively correlated (ρ ≈ 0.60)
+
+Example with 90% staking for both assets:
+- ETH-only TE: 0.2572%
+- SOL-only TE: 0.0425%
+- Independence approximation: √(0.2572² + 0.0425²) = 0.2607%
+- Exact two-asset TE: 0.2632%
+- **Correlation cost: 0.0025% (1.0% increase)**
+
 ## Key Findings and Insights
 
 ### 1. Threshold-Driven Risk Profile
@@ -267,11 +321,22 @@ Elasticities from analytical derivatives:
    - Numerical proof of base_k = eth_weight² × (v' Σ v)
    - Validates Lagrange optimization
 
+5. **`core/two_asset_analytical_formula.py`**
+   - Two-asset tracking error implementation (ETH + SOL)
+   - Time-segmented variance calculation
+   - Cross-asset hedging effects
+
+6. **`core/verify_correlation_cost.py`**
+   - Numerical verification of correlation cost in two-asset case
+   - Tests various ETH/SOL staking combinations
+   - Demonstrates constraint competition effect
+
 ### Key Documentation
 
 - **`docs/analytical-tracking-error-formula.md`**: Complete mathematical derivation
 - **`docs/stochastic-redemption-modeling.md`**: Compound Poisson process approach
 - **`docs/base-k-derivation.md`**: Detailed proof of base_k formula
+- **`docs/correlation-cost-explanation.md`**: Why two-asset staking creates correlation cost
 
 ## Limitations and Assumptions
 

@@ -76,6 +76,7 @@ project_notes_legacy.md
 # Claude Code files
 .claude/
 CLAUDE.md
+.claude-trace/
 
 # Ruff cache
 .ruff_cache/
