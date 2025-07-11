@@ -3,15 +3,20 @@ FastAPI backend for Optimal Staking → Two-Asset Analytical Solution
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Union
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from models import (
     CalculationRequest, 
     CalculationResponse
 )
 from calculator_optimized import calculate_tracking_error
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(
     title="Optimal Staking API",
@@ -19,37 +24,34 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS for both development and production
-# Get frontend URL from environment variable, with fallback for local development
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-allowed_origins = [frontend_url]
+# Create API router for all API endpoints
+api_router = FastAPI()
 
-# Add localhost for development if not already included
-if "localhost" not in frontend_url and "127.0.0.1" not in frontend_url:
-    allowed_origins.extend(["http://localhost:5173", "http://127.0.0.1:5173"])
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configure CORS for development only
+# In production, frontend and backend are served from same origin
+if os.getenv("ENV") == "development":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
-@app.get("/")
-def root():
-    """Root endpoint with API information"""
+@api_router.get("/")
+def api_root():
+    """API root endpoint with API information"""
     return {
         "message": "Optimal Staking API",
         "endpoints": {
-            "POST /calculate": "Calculate tracking error with given parameters",
-            "GET /health": "Health check"
+            "POST /api/calculate": "Calculate tracking error with given parameters",
+            "GET /api/health": "Health check"
         }
     }
 
 
-@app.post("/calculate", response_model=CalculationResponse)
+@api_router.post("/calculate", response_model=CalculationResponse)
 def calculate(request: Union[CalculationRequest, dict]):
     """
     Calculate tracking error and net benefit analysis
@@ -62,13 +64,13 @@ def calculate(request: Union[CalculationRequest, dict]):
 
 
 
-@app.get("/health")
+@api_router.get("/health")
 def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
 
 
-@app.get("/docs/{filename}", response_class=PlainTextResponse)
+@api_router.get("/docs/{filename}", response_class=PlainTextResponse)
 def get_document(filename: str):
     """
     Serve markdown documentation files
@@ -93,6 +95,20 @@ def get_document(filename: str):
         return content
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading document: {str(e)}")
+
+
+# Mount API router under /api prefix
+app.mount("/api", api_router)
+
+# Serve static files (React build) from 'static' directory
+static_path = Path(__file__).parent / "static"
+if static_path.exists():
+    app.mount("/", StaticFiles(directory=str(static_path), html=True), name="static")
+else:
+    # Fallback for development or when static files not built yet
+    @app.get("/")
+    def read_index():
+        return {"message": "Frontend not built. Run 'npm run build' in frontend directory."}
 
 
 if __name__ == "__main__":

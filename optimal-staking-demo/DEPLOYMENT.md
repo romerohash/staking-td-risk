@@ -1,6 +1,6 @@
-# Railway Deployment Guide for Staking TD Demo
+# Railway Deployment Guide for Staking TD Demo (Single Service)
 
-This guide provides step-by-step instructions for deploying the Staking Tracking Error Demo application to Railway.app.
+This guide provides step-by-step instructions for deploying the Staking Tracking Error Demo application to Railway.app as a single service, reducing latency between frontend and backend.
 
 ## Prerequisites
 
@@ -8,11 +8,13 @@ This guide provides step-by-step instructions for deploying the Staking Tracking
 - Git repository with your code pushed to GitHub/GitLab/Bitbucket
 - Railway CLI (optional, for local deployment)
 
-## Project Structure
+## Architecture Overview
 
-The application consists of two services:
-- **Backend**: FastAPI Python application
-- **Frontend**: React TypeScript application served by Caddy
+The application is deployed as a single service that:
+- Serves the React frontend as static files
+- Provides the FastAPI backend API at `/api/*` endpoints
+- Eliminates cross-service communication latency
+- Simplifies deployment and configuration
 
 ## Deployment Steps
 
@@ -22,108 +24,96 @@ The application consists of two services:
 2. Click **"+ New Project"** → **"Empty Project"**
 3. Give your project a name (e.g., "optimal-staking-demo")
 
-### 2. Create Backend Service
+### 2. Create the Service
 
 1. In your project, click **"+ New"** → **"Empty Service"**
-2. Name it "backend" (or similar)
+2. Name it "optimal-staking-app" (or similar)
 3. Go to the service **Settings** tab:
    - Under **Source**, connect your GitHub repository
-   - Set **Root Directory** to `/optimal-staking-demo/backend`
+   - Set **Root Directory** to `/optimal-staking-demo`
    - Under **Build**, Railway should auto-detect the Dockerfile
-4. Go to the **Variables** tab and add:
-   ```
-   FRONTEND_URL=https://your-frontend-service.railway.app
-   ```
-   (You'll update this after creating the frontend service)
-5. Go to the **Settings** tab → **Networking**:
+4. Go to the **Settings** tab → **Networking**:
    - Click **"Generate Domain"** to create a public URL
-   - Note this URL for the frontend configuration
+   - Note this URL for accessing your application
 
-### 3. Create Frontend Service
+### 3. Configure Watch Paths (Optional)
 
-1. In your project, click **"+ New"** → **"Empty Service"**
-2. Name it "frontend" (or similar)
-3. Go to the service **Settings** tab:
-   - Under **Source**, connect your GitHub repository
-   - Set **Root Directory** to `/optimal-staking-demo/frontend`
-   - Under **Build**, Railway should auto-detect the Dockerfile
-4. Go to the **Variables** tab and add:
-   ```
-   VITE_API_URL=https://your-backend-service.railway.app
-   ```
-   (Use the backend URL from step 2.5)
-5. Go to the **Settings** tab → **Networking**:
-   - Click **"Generate Domain"** to create a public URL
+To prevent unnecessary rebuilds when unrelated files change:
 
-### 4. Update Backend CORS Settings
+1. Go to **Settings** → **Watch Paths**
+2. Add: `/optimal-staking-demo/**`
 
-1. Go back to your backend service
-2. Update the `FRONTEND_URL` variable with the frontend URL from step 3.5
-3. The backend will automatically redeploy with the correct CORS settings
+### 4. Deploy
 
-### 5. Configure Watch Paths (Optional but Recommended)
-
-To prevent unnecessary rebuilds when only one service changes:
-
-1. **Backend Service** → **Settings** → **Watch Paths**:
-   - Add: `/optimal-staking-demo/backend/**`
-2. **Frontend Service** → **Settings** → **Watch Paths**:
-   - Add: `/optimal-staking-demo/frontend/**`
-
-### 6. Deploy
-
-Railway will automatically deploy both services when you:
+Railway will automatically deploy the service when you:
 - Push changes to your connected repository
 - Make changes in the Railway dashboard
 - Use the Railway CLI
 
-## Environment Variables Reference
+## How It Works
 
-### Backend Environment Variables
+The single-service deployment uses a multi-stage Docker build:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Automatically provided by Railway | `8000` |
-| `FRONTEND_URL` | Frontend URL for CORS | `https://frontend.railway.app` |
+1. **Stage 1**: Builds the React frontend
+   - Installs Node dependencies
+   - Builds the production bundle
+   
+2. **Stage 2**: Sets up the Python backend
+   - Installs Python dependencies
+   - Copies the built frontend to the `static` directory
+   - Configures FastAPI to serve both API and static files
 
-### Frontend Environment Variables
+## API Routes
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `https://backend.railway.app` |
+- **Frontend**: Served at `/` (and all non-API routes for React routing)
+- **API Endpoints**: All under `/api/*`
+  - `/api/calculate` - Calculate tracking error
+  - `/api/health` - Health check
+  - `/api/docs/{filename}` - Documentation files
 
 ## Monitoring and Logs
 
-1. Click on any service to view:
+1. Click on the service to view:
    - **Logs**: Real-time application logs
    - **Metrics**: CPU, memory, and network usage
    - **Deployments**: History of all deployments
 
-2. Health checks are configured at:
-   - Backend: `https://your-backend.railway.app/health`
-   - Frontend: Caddy handles health checks automatically
+2. Health check is configured at: `https://your-domain.railway.app/api/health`
+
+## Local Development
+
+For local development, the frontend and backend can still run separately:
+
+```bash
+# Backend (port 8000)
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+
+# Frontend (port 5173, proxies API calls to backend)
+cd frontend
+npm install
+npm run dev
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **CORS Errors**
-   - Ensure `FRONTEND_URL` in backend matches your frontend domain exactly
-   - Check that the backend is using HTTPS in production
-
-2. **Port Binding Errors**
-   - Backend must bind to `0.0.0.0:$PORT` (not `localhost` or `127.0.0.1`)
-   - Frontend Caddy server automatically uses `$PORT`
-
-3. **Build Failures**
+1. **Build Failures**
    - Check build logs in Railway dashboard
-   - Ensure all dependencies are in `requirements.txt` (backend) or `package.json` (frontend)
-   - Verify Dockerfile paths are correct
+   - Ensure all dependencies are in `requirements.txt` and `package.json`
+   - Verify the Dockerfile path is correct
 
-4. **API Connection Issues**
-   - Verify `VITE_API_URL` in frontend points to backend's public URL
-   - Ensure both services have generated public domains
-   - Check network logs in browser developer tools
+2. **API Connection Issues**
+   - Frontend automatically uses `/api` for all API calls
+   - No CORS configuration needed in production
+   - Check browser network logs for details
+
+3. **Static Files Not Served**
+   - Ensure the React build completes successfully
+   - Check that static files are copied to the backend's `static` directory
+   - Verify the multi-stage Docker build logs
 
 ### Useful Commands (Railway CLI)
 
@@ -147,29 +137,46 @@ railway logs
 railway open
 ```
 
+## Performance Benefits
+
+This single-service architecture provides:
+- **Reduced Latency**: API calls no longer cross network boundaries
+- **Simplified Configuration**: No CORS or separate service URLs needed
+- **Better Resource Utilization**: Single container uses resources more efficiently
+- **Easier Debugging**: All logs in one place
+
 ## Production Considerations
 
 1. **Security**
    - All secrets should be stored as Railway environment variables
    - Never commit `.env` files to version control
-   - Use HTTPS for all communications (Railway provides this automatically)
+   - HTTPS is provided automatically by Railway
 
 2. **Performance**
-   - Docker images are optimized with multi-stage builds
-   - Static assets are served with proper caching headers via Caddy
-   - Health checks ensure services stay responsive
+   - Static assets are served directly by FastAPI with proper caching
+   - Docker image is optimized with multi-stage build
+   - Health checks ensure service responsiveness
 
 3. **Scaling**
    - Railway supports horizontal scaling through the dashboard
    - Monitor metrics to determine when scaling is needed
-   - Consider implementing rate limiting for the API
+   - Single service architecture scales more predictably
 
 ## Cost Optimization
 
 - Railway offers $5 free credits monthly
+- Single service uses fewer resources than two separate services
 - Monitor usage in the Railway dashboard
 - Use sleep schedules for development environments
-- Optimize Docker images to reduce build times
+
+## Migration from Two-Service Setup
+
+If migrating from the previous two-service setup:
+
+1. Delete the old frontend and backend services
+2. Create the new single service as described above
+3. No environment variables needed for API URLs
+4. Update any external references to use the single domain
 
 ## Support
 

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { CalculationRequest, CalculationResponse } from './types';
 
-// In production, use the full API URL from environment variable
-// In development, use the proxy path '/api' which vite will proxy to localhost:8000
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Always use '/api' - in development vite will proxy to localhost:8000
+// In production, the backend serves both API and static files
+const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
