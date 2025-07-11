@@ -1,6 +1,9 @@
 # Build stage
 FROM node:18-alpine AS builder
 
+# Accept build arguments
+ARG VITE_API_URL
+
 WORKDIR /app
 
 # Copy package files
@@ -11,6 +14,9 @@ RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Set environment variable for build
+ENV VITE_API_URL=$VITE_API_URL
 
 # Build the React app
 RUN npm run build
@@ -24,8 +30,15 @@ COPY --from=builder /app/dist /srv
 # Copy Caddy configuration
 COPY Caddyfile /etc/caddy/Caddyfile
 
-# Create non-root user
-RUN adduser -D -u 1000 appuser && chown -R appuser:appuser /srv
+# Create necessary directories and set permissions
+RUN mkdir -p /data /config /srv && \
+    adduser -D -u 1000 appuser && \
+    chown -R appuser:appuser /srv /data /config /etc/caddy
+
+# Set Caddy environment variables to use writable directories
+ENV XDG_DATA_HOME=/data
+ENV XDG_CONFIG_HOME=/config
+
 USER appuser
 
 # Health check
