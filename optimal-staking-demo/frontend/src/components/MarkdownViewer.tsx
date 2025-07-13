@@ -49,7 +49,7 @@ export function MarkdownViewer({ open, onClose, documentPath, documentTitle }: M
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/docs/${path}`);
+      const response = await fetch(`/api/docs/${path}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch document: ${response.statusText}`);
       }

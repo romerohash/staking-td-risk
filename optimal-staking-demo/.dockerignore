@@ -34,10 +34,6 @@ yarn-error.log*
 .git/
 .gitignore
 
-# Documentation
-*.md
-docs/
-
 # Development files
 .env
 .env.local

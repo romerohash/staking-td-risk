@@ -247,8 +247,8 @@ def perform_sensitivity_analysis_2d_optimized(
     opt_calc: OptimizedCalculator
 ) -> List[SensitivityPoint2D]:
     """Optimized 2D sensitivity analysis using vectorized calculations"""
-    # Perform vectorized 2D analysis
-    results_2d = opt_calc.perform_2d_sensitivity_analysis()
+    # Full 31x31 grid for complete coverage (961 points)
+    results_2d = opt_calc.perform_2d_sensitivity_analysis(n_points=31)
     
     # Convert to list of SensitivityPoint2D objects
     sensitivity_points_2d = []

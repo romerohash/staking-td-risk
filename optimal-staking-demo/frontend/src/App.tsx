@@ -139,7 +139,7 @@ function App() {
   useDebouncedCalculation({
     parameters,
     onCalculate: handleCalculate,
-    delay: 500,
+    delay: 250, // Reduced from 500ms for more responsive updates while still preventing API spam
     enabled: results !== null && autoCalculate && isFormValid, // Only auto-calculate after initial manual calculation, if enabled, and if form is valid
   });
 
@@ -370,7 +370,7 @@ function App() {
                   flex: 1,
                 }}
               >
-                {loading ? 'Calculating...' : 'Calculate'}
+                {loading && !autoCalculate ? 'Calculating...' : 'Calculate'}
               </Button>
               <Tooltip title="Automatically recalculate when parameters change" placement="top">
                 <FormControlLabel
@@ -422,7 +422,7 @@ function App() {
         }}
       >
         <Container maxWidth={false}>
-          <ResultsDisplay results={results} loading={loading} onDocumentClick={handleDocumentClick} />
+          <ResultsDisplay results={results} loading={loading} autoCalculate={autoCalculate} onDocumentClick={handleDocumentClick} />
         </Container>
       </Box>
 

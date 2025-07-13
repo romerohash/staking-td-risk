@@ -14,9 +14,20 @@ from models import (
     CalculationResponse
 )
 from calculator_optimized import calculate_tracking_error
+from warmup import warmup_numba_functions
+import time
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Warmup Numba functions during startup
+print("Starting application initialization...")
+startup_time = time.time()
+try:
+    warmup_numba_functions()
+except Exception as e:
+    print(f"Warning: Numba warmup failed: {e}")
+print(f"Initialization completed in {time.time() - startup_time:.2f}s")
 
 app = FastAPI(
     title="Optimal Staking API",
@@ -83,8 +94,11 @@ def get_document(filename: str):
     if not filename.endswith(".md"):
         raise HTTPException(status_code=400, detail="Only markdown files are allowed")
     
-    # Path to docs directory (two levels up from backend)
-    docs_path = Path(__file__).parent.parent.parent / "docs" / filename
+    # Path resolution based on environment
+    if os.getenv("ENV") == "development":
+        docs_path = Path(__file__).parent.parent / "docs" / filename  # Development: backend/../docs/
+    else:
+        docs_path = Path(__file__).parent / "docs" / filename  # Production: docs at same level
     
     if not docs_path.exists():
         raise HTTPException(status_code=404, detail=f"Document '{filename}' not found")

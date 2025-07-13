@@ -36,6 +36,8 @@ The application is deployed as a single service that:
    - Click **"Generate Domain"** to create a public URL
    - Note this URL for accessing your application
 
+**Important Note**: The `dockerfilePath` in `railway.json` must be relative to the repository root, not the service root directory. Since we set the root directory to `/optimal-staking-demo`, the Dockerfile path is configured as `optimal-staking-demo/Dockerfile`.
+
 ### 3. Configure Watch Paths (Optional)
 
 To prevent unnecessary rebuilds when unrelated files change:

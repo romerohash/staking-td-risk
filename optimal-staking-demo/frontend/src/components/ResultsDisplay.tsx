@@ -23,10 +23,11 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 interface ResultsDisplayProps {
   results: CalculationResponse | null;
   loading: boolean;
+  autoCalculate: boolean;
   onDocumentClick?: (path: string, title: string) => void;
 }
 
-export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, loading, onDocumentClick }) => {
+export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, loading, autoCalculate, onDocumentClick }) => {
   // Helper function to format currency
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('en-US', {
@@ -42,7 +43,8 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, loading
     const nav = results?.parameters_used?.fund_details?.nav || 0;
     return nav * percentage;
   };
-  if (loading) {
+  // Only show loading animation when Auto toggle is disabled
+  if (loading && !autoCalculate) {
     return (
       <GlassCard>
         <Box p={4}>
@@ -221,7 +223,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results, loading
                   <Grid item xs={12} sm={4}>
                     <Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        Tracking Difference Budget
+                        TD Budget
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
                         <Typography variant="h5" fontWeight={600} sx={{ color: '#3B82F6' }}>

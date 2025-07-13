@@ -290,6 +290,11 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
   const fundDetails = parameters.fund_details || defaultFundDetails;
   
   // Debounced inputs for Fund Details
+  // Format number with thousands separators
+  const formatWithThousandsSeparator = (num: number): string => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
   const navInput = useDebouncedNumericInput({
     value: fundDetails.nav,
     onChange: (value) => handleFundDetailsChange('nav', value),
@@ -533,9 +538,18 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
           {/* NAV */}
           <TextField
             label="NAV"
-            value={navInput.value}
-            onChange={(e) => navInput.onChange(e.target.value)}
-            type="number"
+            value={navInput.value === '' || isNaN(parseFloat(navInput.value))
+              ? '' 
+              : formatWithThousandsSeparator(parseFloat(navInput.value))}
+            onChange={(e) => {
+              const rawValue = e.target.value.replace(/,/g, '');
+              // Only allow numeric input
+              if (/^\d*$/.test(rawValue) || rawValue === '') {
+                // Use 1 for empty values to avoid backend validation errors (NAV must be > 0)
+                navInput.onChange(rawValue === '' ? '1' : rawValue);
+              }
+            }}
+            type="text"
             InputProps={{
               startAdornment: <InputAdornment position="start">$</InputAdornment>,
               endAdornment: (

@@ -10,12 +10,13 @@ Performance optimizations:
 """
 
 import numpy as np
-from numba import jit
+from numba import jit, float64, int64
 from typing import Dict, Tuple, Optional
 from dataclasses import dataclass
 
 
-@jit(nopython=True, cache=True)
+@jit("Tuple((float64, float64, float64))(float64[:,:], float64, float64)", 
+     nopython=True, cache=True, fastmath=True)
 def compute_k_components_numba(
     cov_matrix: np.ndarray,
     eth_weight: float,
@@ -32,23 +33,29 @@ def compute_k_components_numba(
     C[2, 3] = 1.0  # SOL constraint (index 3)
     
     # Solve for v_ETH and v_SOL
-    C_inv_cov_C = C @ inv_cov @ C.T
+    # Make C.T contiguous for better performance
+    C_T = np.ascontiguousarray(C.T)
+    C_inv_cov_C = C @ inv_cov @ C_T
     inv_C_inv_cov_C = np.linalg.inv(C_inv_cov_C)
     
     # v_ETH
     e_eth = np.array([0.0, 1.0, 0.0])
     lambda_eth = inv_C_inv_cov_C @ e_eth
-    v_eth = inv_cov @ C.T @ lambda_eth
+    v_eth = inv_cov @ C_T @ lambda_eth
     
     # v_SOL
     e_sol = np.array([0.0, 0.0, 1.0])
     lambda_sol = inv_C_inv_cov_C @ e_sol
-    v_sol = inv_cov @ C.T @ lambda_sol
+    v_sol = inv_cov @ C_T @ lambda_sol
     
-    # Compute variance components
-    v_eth_sigma_v_eth = v_eth @ cov_matrix @ v_eth
-    v_sol_sigma_v_sol = v_sol @ cov_matrix @ v_sol
-    v_eth_sigma_v_sol = v_eth @ cov_matrix @ v_sol
+    # Compute variance components (ensure contiguous arrays for optimal performance)
+    v_eth_contig = np.ascontiguousarray(v_eth)
+    v_sol_contig = np.ascontiguousarray(v_sol)
+    cov_matrix_contig = np.ascontiguousarray(cov_matrix)
+    
+    v_eth_sigma_v_eth = v_eth_contig @ cov_matrix_contig @ v_eth_contig
+    v_sol_sigma_v_sol = v_sol_contig @ cov_matrix_contig @ v_sol_contig
+    v_eth_sigma_v_sol = v_eth_contig @ cov_matrix_contig @ v_sol_contig
     
     # Calculate k values
     k_eth_eth = eth_weight * eth_weight * v_eth_sigma_v_eth
@@ -58,7 +65,8 @@ def compute_k_components_numba(
     return k_eth_eth, k_sol_sol, k_eth_sol
 
 
-@jit(nopython=True, cache=True)
+@jit("float64[:](float64[:], float64[:], float64, float64, float64, float64[:], float64[:], float64, int64, int64)",
+     nopython=True, cache=True, fastmath=True)
 def calculate_tracking_error_vectorized(
     staking_levels_eth: np.ndarray,
     staking_levels_sol: np.ndarray,
@@ -113,7 +121,10 @@ def calculate_tracking_error_vectorized(
     return tracking_errors
 
 
-@jit(nopython=True, cache=True)
+@jit("Tuple((float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]))"
+     "(float64[:], float64[:], float64[:], float64, float64, float64, float64, float64, float64, "
+     "float64[:], float64[:], float64, int64, int64, float64, float64)",
+     nopython=True, cache=True, fastmath=True)
 def calculate_net_benefits_vectorized(
     tracking_errors: np.ndarray,
     staking_levels_eth: np.ndarray,
