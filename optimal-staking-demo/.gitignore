@@ -49,3 +49,6 @@ coverage/
 
 # Build outputs
 *.tsbuildinfo
+
+# Restricted folders and files
+archive/
