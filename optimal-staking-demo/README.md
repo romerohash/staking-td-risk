@@ -1,6 +1,6 @@
 # Staking Tracking Error Demo
 
-A high-performance web application for analyzing two-asset tracking error with staking parameters. This tool provides real-time calculations and interactive visualizations to explore the trade-offs between staking yields and tracking error for ETH and SOL assets in portfolios tracking the Nasdaq Crypto US (NCI-US) index.
+A high-performance web application for analyzing two-asset tracking error with staking parameters. This tool provides real-time calculations and interactive visualizations to explore the trade-offs between staking yields and tracking error for ETH and SOL assets in portfolios tracking the Nasdaq Crypto Index (NCI).
 
 ## Features
 
@@ -165,7 +165,7 @@ TE = √[λ × (d_short × E[Var_full] + (d_long - d_short) × E[Var_partial])]
    - Each constraint reduces degrees of freedom for optimization
 
 4. **Market Parameters**
-   - Benchmark: NCI-US index weights and correlations
+   - Benchmark: NCI index weights and correlations
    - Base k-factor ≈ 0.000011 (derived from Lagrange optimization)
    - Stochastic redemption model with compound Poisson process
 
@@ -208,4 +208,4 @@ See `DEPLOYMENT.md` for detailed Railway deployment instructions.
   - 10% redemptions: 17% probability
   - 20% redemptions: 11% probability
   - 30% redemptions: 6% probability
-- **Market Structure**: Based on NCI-US index composition
+- **Market Structure**: Based on NCI index composition

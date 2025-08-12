@@ -249,12 +249,15 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
   
   // Default market parameters
   const defaultBenchmarkWeights: BenchmarkWeights = {
-    btc: 0.7869,
-    eth: 0.1049,
-    xrp: 0.0549,
-    sol: 0.0387,
-    ada: 0.0119,
-    xlm: 0.0027,
+    btc: 0.7298,
+    eth: 0.1435,
+    xrp: 0.0653,
+    sol: 0.0364,
+    ada: 0.0113,
+    link: 0.0046,
+    xlm: 0.0037,
+    ltc: 0.0034,
+    uni: 0.0020,
   };
 
   const defaultMarketParams: MarketParameters = {
@@ -265,7 +268,10 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
       xrp: 0.053,
       sol: 0.071,
       ada: 0.055,
+      link: 0.0525,
       xlm: 0.051,
+      ltc: 0.060,
+      uni: 0.095,
     },
     correlations: {
       btc_eth: 0.70,
@@ -625,7 +631,7 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
             Index benchmark allocations
           </Typography>
           <InfoTooltip
-            title="Asset weights in the NCI-US index benchmark"
+            title="Asset weights in the NCI index benchmark"
             description="These weights determine the portfolio's target allocations"
             documentLink={{
               path: 'two-asset-model-parameters.md',
@@ -651,7 +657,7 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
             sx={glassStyles.buttonSubtle}
             fullWidth
           >
-            Apply NCI-US Default Weights
+            Apply NCI Default Weights
           </Button>
         </Box>
         
@@ -663,7 +669,10 @@ export const ParameterForm: React.FC<ParameterFormProps> = ({
               xrp: '#00AAE4',
               sol: '#14F195',
               ada: '#0033AD',
+              link: '#2A5ADA',
               xlm: '#000000',
+              ltc: '#BFBBBB',
+              uni: '#FF007A',
             };
             
             return (

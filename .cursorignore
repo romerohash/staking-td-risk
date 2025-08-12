@@ -70,8 +70,11 @@ api_keys.py
 secrets.py
 
 # Restricted folders and files
+repo/
+# repomix-output*
 archive/
 project_notes_legacy.md
+etf_market_making/
 
 # Claude Code files
 .claude/

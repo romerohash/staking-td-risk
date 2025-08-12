@@ -26,7 +26,10 @@ export interface BenchmarkWeights {
   xrp: number;
   sol: number;
   ada: number;
+  link: number;
   xlm: number;
+  ltc: number;
+  uni: number;
 }
 
 export interface AssetVolatilities {
@@ -35,7 +38,10 @@ export interface AssetVolatilities {
   xrp: number;
   sol: number;
   ada: number;
+  link: number;
   xlm: number;
+  ltc: number;
+  uni: number;
 }
 
 export interface CorrelationParameters {
