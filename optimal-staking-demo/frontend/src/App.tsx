@@ -121,7 +121,10 @@ function App() {
               xrp: parameters.market.volatilities.xrp / sqrtTradingDays,
               sol: parameters.market.volatilities.sol / sqrtTradingDays,
               ada: parameters.market.volatilities.ada / sqrtTradingDays,
+              link: parameters.market.volatilities.link / sqrtTradingDays,
               xlm: parameters.market.volatilities.xlm / sqrtTradingDays,
+              ltc: parameters.market.volatilities.ltc / sqrtTradingDays,
+              uni: parameters.market.volatilities.uni / sqrtTradingDays,
             },
           },
         };
