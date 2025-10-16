@@ -4,7 +4,7 @@ FastAPI backend for Optimal Staking → Two-Asset Analytical Solution
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, FileResponse
+from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from typing import Union
 import os
