@@ -18,23 +18,32 @@ export const useDebouncedNumericInput = ({
 	decimalPlaces,
 }: UseDebouncedNumericInputProps) => {
 	// Format initial value with appropriate decimal places
-	const formatValue = (num: number): string => {
-		return decimalPlaces !== undefined
-			? num.toFixed(decimalPlaces)
-			: num.toString();
-	};
+	// Memoize this function to prevent unnecessary re-renders
+	const formatValue = useCallback(
+		(num: number): string => {
+			return decimalPlaces !== undefined
+				? num.toFixed(decimalPlaces)
+				: num.toString();
+		},
+		[decimalPlaces],
+	);
 
 	const [localValue, setLocalValue] = useState(formatValue(value));
 	const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+	const [isUserTyping, _setIsUserTyping] = useState(false);
 
 	// Update local value when prop changes from external source
+	// BUT only if the user is not currently typing
 	useEffect(() => {
-		setLocalValue(formatValue(value));
-	}, [value, formatValue]);
+		if (!isUserTyping) {
+			setLocalValue(formatValue(value));
+		}
+	}, [value, formatValue, isUserTyping]);
 
 	const handleChange = useCallback(
 		(inputValue: string) => {
 			setLocalValue(inputValue);
+			_setIsUserTyping(true);
 
 			// Clear existing timeout
 			if (timeoutId) {
@@ -59,6 +68,9 @@ export const useDebouncedNumericInput = ({
 
 					onChange(finalValue);
 				}
+
+				// Mark typing as complete after debounce
+				_setIsUserTyping(false);
 			}, delay);
 
 			setTimeoutId(newTimeoutId);
