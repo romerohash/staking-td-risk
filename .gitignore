@@ -74,7 +74,7 @@ repo/
 # repomix-output*
 archive/
 project_notes_legacy.md
-etf_market_making/
+reports/
 
 # Claude Code files
 .claude/

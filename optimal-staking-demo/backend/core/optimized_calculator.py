@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 
 @jit(
-    "Tuple((float64, float64, float64))(float64[:,:], float64, float64)",
+    'Tuple((float64, float64, float64))(float64[:,:], float64, float64)',
     nopython=True,
     cache=True,
     fastmath=True,
@@ -68,7 +68,7 @@ def compute_k_components_numba(
 
 
 @jit(
-    "float64[:](float64[:], float64[:], float64, float64, float64, float64[:], float64[:], float64, int64, int64)",
+    'float64[:](float64[:], float64[:], float64, float64, float64, float64[:], float64[:], float64, int64, int64)',
     nopython=True,
     cache=True,
     fastmath=True,
@@ -130,9 +130,9 @@ def calculate_tracking_error_vectorized(
 
 
 @jit(
-    "Tuple((float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]))"
-    "(float64[:], float64[:], float64[:], float64, float64, float64, float64, float64, float64, "
-    "float64[:], float64[:], float64, int64, int64, float64, float64)",
+    'Tuple((float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]))'
+    '(float64[:], float64[:], float64[:], float64, float64, float64, float64, float64, float64, '
+    'float64[:], float64[:], float64, int64, int64, float64, float64)',
     nopython=True,
     cache=True,
     fastmath=True,
@@ -323,21 +323,39 @@ class OptimizedCalculator:
         )
 
         return {
-            "yield_benefits": yields,
-            "expected_shortfalls": shortfalls,
-            "tracking_difference_budgets": td_budgets,
-            "td_budget_deficits": td_deficits,
-            "net_benefits": net_ben,
-            "net_benefits_bps": net_bps,
+            'yield_benefits': yields,
+            'expected_shortfalls': shortfalls,
+            'tracking_difference_budgets': td_budgets,
+            'td_budget_deficits': td_deficits,
+            'net_benefits': net_ben,
+            'net_benefits_bps': net_bps,
         }
 
     def perform_2d_sensitivity_analysis(
         self,
-        eth_range: Tuple[float, float] = (0.70, 1.00),
-        sol_range: Tuple[float, float] = (0.70, 1.00),
+        eth_range: Tuple[float, float] = None,
+        sol_range: Tuple[float, float] = None,
         n_points: int = 31,
     ) -> Dict[str, np.ndarray]:
-        """Vectorized 2D sensitivity analysis"""
+        """
+        Vectorized 2D sensitivity analysis
+
+        The search space defaults to starting at each asset's baseline staking percentage,
+        allowing optimization to recommend levels below the baseline when beneficial.
+
+        Args:
+            eth_range: Optional tuple (min, max) for ETH staking levels.
+                      Defaults to (eth_baseline, 1.00)
+            sol_range: Optional tuple (min, max) for SOL staking levels.
+                      Defaults to (sol_baseline, 1.00)
+            n_points: Number of points to sample in each dimension
+        """
+        # Use baseline-derived ranges if not explicitly provided
+        if eth_range is None:
+            eth_range = (self.eth_baseline, 1.00)
+        if sol_range is None:
+            sol_range = (self.sol_baseline, 1.00)
+
         # Create meshgrid of staking levels
         eth_levels = np.linspace(eth_range[0], eth_range[1], n_points)
         sol_levels = np.linspace(sol_range[0], sol_range[1], n_points)
@@ -355,12 +373,12 @@ class OptimizedCalculator:
         # Reshape results back to grid
         shape = (n_points, n_points)
         return {
-            "eth_levels": eth_grid,
-            "sol_levels": sol_grid,
-            "tracking_errors": tracking_errors.reshape(shape),
-            "yield_benefits": results["yield_benefits"].reshape(shape),
-            "expected_shortfalls": results["expected_shortfalls"].reshape(shape),
-            "net_benefits_bps": results["net_benefits_bps"].reshape(shape),
+            'eth_levels': eth_grid,
+            'sol_levels': sol_grid,
+            'tracking_errors': tracking_errors.reshape(shape),
+            'yield_benefits': results['yield_benefits'].reshape(shape),
+            'expected_shortfalls': results['expected_shortfalls'].reshape(shape),
+            'net_benefits_bps': results['net_benefits_bps'].reshape(shape),
         }
 
 
@@ -376,16 +394,15 @@ def create_optimized_calculator(
     """Create optimized calculator from existing parameter structures"""
 
     # Build covariance matrix (reuse existing logic)
-    # Dynamically determine assets from volatilities to support both 6 and 9 asset configs
-    assets = sorted(market_params["daily_volatilities"].keys())
+    assets = ['BTC', 'ETH', 'XRP', 'SOL', 'ADA', 'XLM']
     n = len(assets)
 
     # Extract volatilities
-    vols = np.array([market_params["daily_volatilities"][asset] for asset in assets])
+    vols = np.array([market_params['daily_volatilities'][asset] for asset in assets])
 
     # Build correlation matrix
     corr_matrix = np.eye(n)
-    for pair, corr in market_params["correlations"].items():
+    for pair, corr in market_params['correlations'].items():
         i = assets.index(pair[0])
         j = assets.index(pair[1])
         corr_matrix[i, j] = corr_matrix[j, i] = corr
@@ -395,14 +412,14 @@ def create_optimized_calculator(
     cov_matrix = vol_diag @ corr_matrix @ vol_diag
 
     # Convert redemption distribution
-    redemption_sizes = np.array(redemption_dist["sizes"])
-    redemption_probs = np.array(redemption_dist["probabilities"])
+    redemption_sizes = np.array(redemption_dist['sizes'])
+    redemption_probs = np.array(redemption_dist['probabilities'])
 
     # Extract fund details or use defaults
     if fund_details:
-        nav = fund_details.get("nav", 500000000.0)
-        current_td = fund_details.get("current_td", 0.0143)
-        cap_td = fund_details.get("cap_td", 0.015)
+        nav = fund_details.get('nav', 500000000.0)
+        current_td = fund_details.get('current_td', 0.0143)
+        cap_td = fund_details.get('cap_td', 0.015)
     else:
         nav = 500000000.0
         current_td = 0.0143
@@ -410,17 +427,17 @@ def create_optimized_calculator(
 
     return OptimizedCalculator(
         cov_matrix=cov_matrix,
-        eth_weight=benchmark_weights["eth"],
-        sol_weight=benchmark_weights["sol"],
+        eth_weight=benchmark_weights['eth'],
+        sol_weight=benchmark_weights['sol'],
         redemption_sizes=redemption_sizes,
         redemption_probs=redemption_probs,
-        lambda_r=redemption_dist["lambda"],
-        eth_yield=yield_params["eth_yield"],
-        sol_yield=yield_params["sol_yield"],
-        eth_baseline=yield_params["eth_baseline"],
-        sol_baseline=yield_params["sol_baseline"],
-        d_eth=unbonding_days["eth"],
-        d_sol=unbonding_days["sol"],
+        lambda_r=redemption_dist['lambda'],
+        eth_yield=yield_params['eth_yield'],
+        sol_yield=yield_params['sol_yield'],
+        eth_baseline=yield_params['eth_baseline'],
+        sol_baseline=yield_params['sol_baseline'],
+        d_eth=unbonding_days['eth'],
+        d_sol=unbonding_days['sol'],
         nav=nav,
         current_td=current_td,
         cap_td=cap_td,

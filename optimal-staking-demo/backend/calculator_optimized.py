@@ -40,171 +40,107 @@ def calculate_tracking_error(
     """
     # Handle legacy request format (same as original)
     if isinstance(request, dict):
-        if "yield_params" in request:
+        if 'yield_params' in request:
             legacy_req = LegacyCalculationRequest(**request)
             request = convert_legacy_request(legacy_req)
         else:
             request = CalculationRequest(**request)
-    elif hasattr(request, "yield_params"):
+    elif hasattr(request, 'yield_params'):
         request = convert_legacy_request(request)
 
     # Parse market parameters
     if request.market:
         benchmark_weights = {
-            "btc": request.market.benchmark_weights.btc,
-            "eth": request.market.benchmark_weights.eth,
-            "xrp": request.market.benchmark_weights.xrp,
-            "sol": request.market.benchmark_weights.sol,
-            "ada": request.market.benchmark_weights.ada,
-            "link": request.market.benchmark_weights.link,
-            "xlm": request.market.benchmark_weights.xlm,
-            "ltc": request.market.benchmark_weights.ltc,
-            "uni": request.market.benchmark_weights.uni,
+            'btc': request.market.benchmark_weights.btc,
+            'eth': request.market.benchmark_weights.eth,
+            'sol': request.market.benchmark_weights.sol,
         }
         market_params = {
-            "daily_volatilities": {
-                "BTC": request.market.volatilities.btc,
-                "ETH": request.market.volatilities.eth,
-                "XRP": request.market.volatilities.xrp,
-                "SOL": request.market.volatilities.sol,
-                "ADA": request.market.volatilities.ada,
-                "LINK": request.market.volatilities.link,
-                "XLM": request.market.volatilities.xlm,
-                "LTC": request.market.volatilities.ltc,
-                "UNI": request.market.volatilities.uni,
+            'daily_volatilities': {
+                'BTC': request.market.volatilities.btc,
+                'ETH': request.market.volatilities.eth,
+                'XRP': request.market.volatilities.xrp,
+                'SOL': request.market.volatilities.sol,
+                'ADA': request.market.volatilities.ada,
+                'XLM': request.market.volatilities.xlm,
             },
-            "correlations": {
-                ("BTC", "ETH"): request.market.correlations.btc_eth,
-                ("BTC", "XRP"): request.market.correlations.btc_excluded,
-                ("BTC", "SOL"): request.market.correlations.btc_excluded,
-                ("BTC", "ADA"): request.market.correlations.btc_excluded,
-                ("BTC", "XLM"): request.market.correlations.btc_excluded,
-                ("BTC", "LINK"): request.market.correlations.btc_excluded,
-                ("BTC", "LTC"): request.market.correlations.btc_excluded,
-                ("BTC", "UNI"): request.market.correlations.btc_excluded,
-                ("ETH", "XRP"): request.market.correlations.eth_excluded,
-                ("ETH", "SOL"): request.market.correlations.eth_excluded,
-                ("ETH", "ADA"): request.market.correlations.eth_excluded,
-                ("ETH", "XLM"): request.market.correlations.eth_excluded,
-                ("ETH", "LINK"): request.market.correlations.eth_excluded,
-                ("ETH", "LTC"): request.market.correlations.eth_excluded,
-                ("ETH", "UNI"): request.market.correlations.eth_excluded,
-                ("XRP", "SOL"): request.market.correlations.within_excluded,
-                ("XRP", "ADA"): request.market.correlations.within_excluded,
-                ("XRP", "XLM"): request.market.correlations.within_excluded,
-                ("XRP", "LINK"): request.market.correlations.within_excluded,
-                ("XRP", "LTC"): request.market.correlations.within_excluded,
-                ("XRP", "UNI"): request.market.correlations.within_excluded,
-                ("SOL", "ADA"): request.market.correlations.within_excluded,
-                ("SOL", "XLM"): request.market.correlations.within_excluded,
-                ("SOL", "LINK"): request.market.correlations.within_excluded,
-                ("SOL", "LTC"): request.market.correlations.within_excluded,
-                ("SOL", "UNI"): request.market.correlations.within_excluded,
-                ("ADA", "XLM"): request.market.correlations.within_excluded,
-                ("ADA", "LINK"): request.market.correlations.within_excluded,
-                ("ADA", "LTC"): request.market.correlations.within_excluded,
-                ("ADA", "UNI"): request.market.correlations.within_excluded,
-                ("XLM", "LINK"): request.market.correlations.within_excluded,
-                ("XLM", "LTC"): request.market.correlations.within_excluded,
-                ("XLM", "UNI"): request.market.correlations.within_excluded,
-                ("LINK", "LTC"): request.market.correlations.within_excluded,
-                ("LINK", "UNI"): request.market.correlations.within_excluded,
-                ("LTC", "UNI"): request.market.correlations.within_excluded,
+            'correlations': {
+                ('BTC', 'ETH'): request.market.correlations.btc_eth,
+                ('BTC', 'XRP'): request.market.correlations.btc_excluded,
+                ('BTC', 'SOL'): request.market.correlations.btc_excluded,
+                ('BTC', 'ADA'): request.market.correlations.btc_excluded,
+                ('BTC', 'XLM'): request.market.correlations.btc_excluded,
+                ('ETH', 'XRP'): request.market.correlations.eth_excluded,
+                ('ETH', 'SOL'): request.market.correlations.eth_excluded,
+                ('ETH', 'ADA'): request.market.correlations.eth_excluded,
+                ('ETH', 'XLM'): request.market.correlations.eth_excluded,
+                ('XRP', 'SOL'): request.market.correlations.within_excluded,
+                ('XRP', 'ADA'): request.market.correlations.within_excluded,
+                ('XRP', 'XLM'): request.market.correlations.within_excluded,
+                ('SOL', 'ADA'): request.market.correlations.within_excluded,
+                ('SOL', 'XLM'): request.market.correlations.within_excluded,
+                ('ADA', 'XLM'): request.market.correlations.within_excluded,
             },
         }
     else:
         # Use defaults
-        benchmark_weights = {
-            "btc": 0.7298,
-            "eth": 0.1435,
-            "xrp": 0.0653,
-            "sol": 0.0364,
-            "ada": 0.0113,
-            "link": 0.0046,
-            "xlm": 0.0037,
-            "ltc": 0.0034,
-            "uni": 0.0020,
-        }
+        benchmark_weights = {'btc': 0.7869, 'eth': 0.1049, 'sol': 0.0387}
         market_params = {
-            "daily_volatilities": {
-                "BTC": 0.039,
-                "ETH": 0.048,
-                "XRP": 0.053,
-                "SOL": 0.071,
-                "ADA": 0.055,
-                "LINK": 0.0525,
-                "XLM": 0.051,
-                "LTC": 0.060,
-                "UNI": 0.095,
+            'daily_volatilities': {
+                'BTC': 0.039,
+                'ETH': 0.048,
+                'XRP': 0.053,
+                'SOL': 0.071,
+                'ADA': 0.055,
+                'XLM': 0.051,
             },
-            "correlations": {
-                ("BTC", "ETH"): 0.70,
-                ("BTC", "XRP"): 0.60,
-                ("BTC", "SOL"): 0.60,
-                ("BTC", "ADA"): 0.60,
-                ("BTC", "XLM"): 0.60,
-                ("BTC", "LINK"): 0.60,
-                ("BTC", "LTC"): 0.60,
-                ("BTC", "UNI"): 0.60,
-                ("ETH", "XRP"): 0.60,
-                ("ETH", "SOL"): 0.60,
-                ("ETH", "ADA"): 0.60,
-                ("ETH", "XLM"): 0.60,
-                ("ETH", "LINK"): 0.60,
-                ("ETH", "LTC"): 0.60,
-                ("ETH", "UNI"): 0.60,
-                ("XRP", "SOL"): 0.60,
-                ("XRP", "ADA"): 0.60,
-                ("XRP", "XLM"): 0.60,
-                ("XRP", "LINK"): 0.60,
-                ("XRP", "LTC"): 0.60,
-                ("XRP", "UNI"): 0.60,
-                ("SOL", "ADA"): 0.60,
-                ("SOL", "XLM"): 0.60,
-                ("SOL", "LINK"): 0.60,
-                ("SOL", "LTC"): 0.60,
-                ("SOL", "UNI"): 0.60,
-                ("ADA", "XLM"): 0.60,
-                ("ADA", "LINK"): 0.60,
-                ("ADA", "LTC"): 0.60,
-                ("ADA", "UNI"): 0.60,
-                ("XLM", "LINK"): 0.60,
-                ("XLM", "LTC"): 0.60,
-                ("XLM", "UNI"): 0.60,
-                ("LINK", "LTC"): 0.60,
-                ("LINK", "UNI"): 0.60,
-                ("LTC", "UNI"): 0.60,
+            'correlations': {
+                ('BTC', 'ETH'): 0.70,
+                ('BTC', 'XRP'): 0.60,
+                ('BTC', 'SOL'): 0.60,
+                ('BTC', 'ADA'): 0.60,
+                ('BTC', 'XLM'): 0.60,
+                ('ETH', 'XRP'): 0.60,
+                ('ETH', 'SOL'): 0.60,
+                ('ETH', 'ADA'): 0.60,
+                ('ETH', 'XLM'): 0.60,
+                ('XRP', 'SOL'): 0.60,
+                ('XRP', 'ADA'): 0.60,
+                ('XRP', 'XLM'): 0.60,
+                ('SOL', 'ADA'): 0.60,
+                ('SOL', 'XLM'): 0.60,
+                ('ADA', 'XLM'): 0.60,
             },
         }
 
     # Parse redemption distribution
     redemption_dist = {
-        "sizes": [item.size for item in request.redemption.distribution],
-        "probabilities": [item.probability for item in request.redemption.distribution],
-        "lambda": request.redemption.expected_redemptions_per_year,
+        'sizes': [item.size for item in request.redemption.distribution],
+        'probabilities': [item.probability for item in request.redemption.distribution],
+        'lambda': request.redemption.expected_redemptions_per_year,
     }
 
     # Parse yield parameters
     yield_params = {
-        "eth_yield": request.staking.eth.annual_yield,
-        "sol_yield": request.staking.sol.annual_yield,
-        "eth_baseline": request.staking.eth.baseline_staking_pct,
-        "sol_baseline": request.staking.sol.baseline_staking_pct,
+        'eth_yield': request.staking.eth.annual_yield,
+        'sol_yield': request.staking.sol.annual_yield,
+        'eth_baseline': request.staking.eth.baseline_staking_pct,
+        'sol_baseline': request.staking.sol.baseline_staking_pct,
     }
 
     # Unbonding days
     unbonding_days = {
-        "eth": request.staking.eth.unbonding_period_days,
-        "sol": request.staking.sol.unbonding_period_days,
+        'eth': request.staking.eth.unbonding_period_days,
+        'sol': request.staking.sol.unbonding_period_days,
     }
 
     # Parse fund details
     fund_details = None
     if request.fund_details:
         fund_details = {
-            "nav": request.fund_details.nav,
-            "current_td": request.fund_details.current_td,
-            "cap_td": request.fund_details.cap_td,
+            'nav': request.fund_details.nav,
+            'current_td': request.fund_details.current_td,
+            'cap_td': request.fund_details.cap_td,
         }
 
     # Create optimized calculator
@@ -228,10 +164,7 @@ def calculate_tracking_error(
             xrp_weight=request.market.benchmark_weights.xrp,
             sol_weight=request.market.benchmark_weights.sol,
             ada_weight=request.market.benchmark_weights.ada,
-            link_weight=request.market.benchmark_weights.link,
             xlm_weight=request.market.benchmark_weights.xlm,
-            ltc_weight=request.market.benchmark_weights.ltc,
-            uni_weight=request.market.benchmark_weights.uni,
         )
     )
 
@@ -246,8 +179,8 @@ def calculate_tracking_error(
         MarketParameters()
         if not request.market
         else MarketParameters(
-            daily_volatilities=market_params["daily_volatilities"],
-            correlations=market_params["correlations"],
+            daily_volatilities=market_params['daily_volatilities'],
+            correlations=market_params['correlations'],
             trading_days_per_year=request.market.trading_days_per_year,
         )
     )
@@ -311,13 +244,23 @@ def calculate_tracking_error(
 def perform_sensitivity_analysis_optimized(
     opt_calc: OptimizedCalculator,
 ) -> List[SensitivityPoint]:
-    """Optimized 1D sensitivity analysis using vectorized calculations"""
-    staking_levels = np.array(
-        [
-            0.70,
-            0.75,
-            0.80,
-            0.85,
+    """
+    Optimized 1D sensitivity analysis using vectorized calculations
+
+    The search space starts at the minimum of the baseline staking percentages,
+    allowing optimization to recommend levels below the baseline when beneficial.
+    """
+    # Use the minimum baseline as the starting point for the search
+    min_baseline = min(opt_calc.eth_baseline, opt_calc.sol_baseline)
+
+    # Generate staking levels starting from the minimum baseline
+    # Use same granular increments around high-probability areas (0.88-0.98)
+    if min_baseline <= 0.85:
+        levels_list = [
+            min_baseline + i * 0.05
+            for i in range(int((0.85 - min_baseline) / 0.05) + 1)
+        ]
+        levels_list.extend([
             0.88,
             0.89,
             0.90,
@@ -329,8 +272,15 @@ def perform_sensitivity_analysis_optimized(
             0.96,
             0.97,
             0.98,
+        ])
+    else:
+        # If baseline is already high, just use granular increments from baseline to 0.98
+        levels_list = [
+            min_baseline + i * 0.01
+            for i in range(int((0.98 - min_baseline) / 0.01) + 1)
         ]
-    )
+
+    staking_levels = np.array(levels_list)
 
     # Calculate all tracking errors at once
     tracking_errors = opt_calc.calculate_tracking_errors(staking_levels, staking_levels)
@@ -347,9 +297,9 @@ def perform_sensitivity_analysis_optimized(
             SensitivityPoint(
                 staking_level=level,
                 tracking_error=tracking_errors[i],
-                yield_benefit=results["yield_benefits"][i],
-                expected_shortfall=results["expected_shortfalls"][i],
-                net_benefit_bps=results["net_benefits_bps"][i],
+                yield_benefit=results['yield_benefits'][i],
+                expected_shortfall=results['expected_shortfalls'][i],
+                net_benefit_bps=results['net_benefits_bps'][i],
             )
         )
 
@@ -365,18 +315,18 @@ def perform_sensitivity_analysis_2d_optimized(
 
     # Convert to list of SensitivityPoint2D objects
     sensitivity_points_2d = []
-    n_points = results_2d["eth_levels"].shape[0]
+    n_points = results_2d['eth_levels'].shape[0]
 
     for i in range(n_points):
         for j in range(n_points):
             sensitivity_points_2d.append(
                 SensitivityPoint2D(
-                    eth_staking_level=results_2d["eth_levels"][i, j],
-                    sol_staking_level=results_2d["sol_levels"][i, j],
-                    tracking_error=results_2d["tracking_errors"][i, j],
-                    yield_benefit=results_2d["yield_benefits"][i, j],
-                    expected_shortfall=results_2d["expected_shortfalls"][i, j],
-                    net_benefit_bps=results_2d["net_benefits_bps"][i, j],
+                    eth_staking_level=results_2d['eth_levels'][i, j],
+                    sol_staking_level=results_2d['sol_levels'][i, j],
+                    tracking_error=results_2d['tracking_errors'][i, j],
+                    yield_benefit=results_2d['yield_benefits'][i, j],
+                    expected_shortfall=results_2d['expected_shortfalls'][i, j],
+                    net_benefit_bps=results_2d['net_benefits_bps'][i, j],
                 )
             )
 

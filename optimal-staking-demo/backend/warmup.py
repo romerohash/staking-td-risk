@@ -17,21 +17,21 @@ from core.optimized_calculator import (
 
 def warmup_numba_functions():
     """Pre-compile all Numba functions with representative data"""
-    print("Starting Numba warmup...")
+    print('Starting Numba warmup...')
     start_time = time.time()
 
     # Create representative data matching production shapes
-    n_assets = 9
+    n_assets = 6
     cov_matrix = np.eye(n_assets, dtype=np.float64) * 0.01
 
     # Warmup compute_k_components_numba
-    print("  Warming up k-components calculation...")
+    print('  Warming up k-components calculation...')
     k_eth_eth, k_sol_sol, k_eth_sol = compute_k_components_numba(
-        cov_matrix, eth_weight=0.1435, sol_weight=0.0364
+        cov_matrix, eth_weight=0.1049, sol_weight=0.0387
     )
 
     # Warmup tracking error calculation with various sizes
-    print("  Warming up tracking error calculation...")
+    print('  Warming up tracking error calculation...')
 
     # Small batch (single calculation)
     staking_levels_eth = np.array([0.90], dtype=np.float64)
@@ -68,7 +68,7 @@ def warmup_numba_functions():
     )
 
     # Warmup net benefits calculation
-    print("  Warming up net benefits calculation...")
+    print('  Warming up net benefits calculation...')
     tracking_errors = np.array([0.01, 0.02, 0.03], dtype=np.float64)
     staking_levels = np.array([0.80, 0.90, 0.95], dtype=np.float64)
 
@@ -76,8 +76,8 @@ def warmup_numba_functions():
         tracking_errors,
         staking_levels,
         staking_levels,
-        eth_weight=0.1435,
-        sol_weight=0.0364,
+        eth_weight=0.1049,
+        sol_weight=0.0387,
         eth_yield=0.035,
         sol_yield=0.06,
         eth_baseline=0.0,
@@ -92,10 +92,10 @@ def warmup_numba_functions():
     )
 
     elapsed = time.time() - start_time
-    print(f"✅ Numba warmup completed in {elapsed:.2f}s")
+    print(f'✅ Numba warmup completed in {elapsed:.2f}s')
 
     return True
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     warmup_numba_functions()
