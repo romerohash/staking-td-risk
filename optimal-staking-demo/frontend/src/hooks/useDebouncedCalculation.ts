@@ -9,7 +9,7 @@ interface UseDebouncedCalculationProps {
 }
 
 export const useDebouncedCalculation = ({
-	parameters,
+	parameters: _parameters,
 	onCalculate,
 	delay = 500,
 	enabled = true,

@@ -8,7 +8,7 @@ import {
 	IconButton,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
@@ -36,19 +36,16 @@ export function MarkdownViewer({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		if (open && documentPath) {
-			fetchDocument(documentPath);
-		}
-	}, [open, documentPath, fetchDocument]);
-
-	const fetchDocument = async (path: string) => {
+	const fetchDocument = useCallback(async (path: string) => {
 		setLoading(true);
 		setError(null);
 
 		// Check cache first
 		if (documentCache.has(path)) {
-			setContent(documentCache.get(path)!);
+			const cachedContent = documentCache.get(path);
+			if (cachedContent) {
+				setContent(cachedContent);
+			}
 			setLoading(false);
 			return;
 		}
@@ -68,7 +65,13 @@ export function MarkdownViewer({
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (open && documentPath) {
+			fetchDocument(documentPath);
+		}
+	}, [open, documentPath, fetchDocument]);
 
 	return (
 		<Dialog
